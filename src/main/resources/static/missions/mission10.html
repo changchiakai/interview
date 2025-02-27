@@ -36,12 +36,23 @@
                     }
                     $("#response").append("<span class='"+displayClass+"'>"+value+"</span>");
                 }
-
+                function resetSession() {
+                    ajax({
+                        url : "/mission10/resetSession",
+                        method : "POST",
+                        data : {
+                        },
+                        success : function(data) {
+                            var num = randomNum(5, 10);
+                            for (var i = 0 ; i < num ; i++) {
+                                call();
+                            }
+                        }
+                    });
+                }
                 $("#btn1").click(function() {
-                    var num = randomNum(5, 10);
-                    for (var i = 0 ; i < num ; i++) {
-                        call();
-                    }
+                    resetSession()
+
                 });
             });
         </script>

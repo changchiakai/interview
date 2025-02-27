@@ -14,7 +14,6 @@
         
         <script type="text/javascript">
             $(function() {
-
                 $("#btn1").click(function() {
 
                     ajax({
@@ -24,6 +23,10 @@
                         processData: false,
                         contentType: false, 
                         success : function(data) {
+                            $("#response").text(prettyJSON(data));
+                        },
+                        error: function (data){
+                            console.log(data)
                             $("#response").text(prettyJSON(data));
                         }
                     });
@@ -62,7 +65,7 @@
                                 </tr>
                                 <tr>
                                     <th>會員稱呼</th>
-                                    <td><input type="text" name="name" /></td>
+                                    <td><input type="text" name="name"  /></td>
                                 </tr>
                             </tbody>
                             <tfoot>
