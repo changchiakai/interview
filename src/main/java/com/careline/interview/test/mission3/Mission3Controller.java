@@ -1,8 +1,8 @@
 package com.careline.interview.test.mission3;
 
-import com.careline.interview.test.mission3.dto.ErrorResponse;
-import com.careline.interview.test.mission3.dto.RegisterResponse;
-import com.careline.interview.test.mission3.entity.Member;
+import com.careline.interview.test.dto.ErrorResponse;
+import com.careline.interview.test.dto.RegisterResponse;
+import com.careline.interview.test.entity.Member;
 import com.careline.interview.test.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("mission3")
 public class Mission3Controller {
-
 
     @Autowired
     private MemberService mission3Service;
@@ -45,10 +44,10 @@ public class Mission3Controller {
         Member member = new Member(email, password, name);
         System.out.println("member:" +member);
 
-        mission3Service.addMember(member);
+       int memberId =  mission3Service.addMember(member);
 
 
-        return ResponseEntity.ok(new RegisterResponse(1));
+        return ResponseEntity.ok(new RegisterResponse(memberId));
     }
 
     @GetMapping("/all")

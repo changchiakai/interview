@@ -1,4 +1,4 @@
-package com.careline.interview.test.mission3.dto;
+package com.careline.interview.test.dto;
 
 // 註冊成功回應資料
 public class RegisterResponse {

@@ -1,4 +1,4 @@
-package com.careline.interview.test.mission3.dto;
+package com.careline.interview.test.dto;
 
 public class ErrorResponse {
     private String msg;

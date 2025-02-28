@@ -1,11 +1,12 @@
 package com.careline.interview.test.service;
-import com.careline.interview.test.mission3.entity.Member;
+import com.careline.interview.test.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MemberService {
@@ -13,11 +14,14 @@ public class MemberService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public String addMember(Member member) {
+    public int  addMember(Member member) {
         String sql = "INSERT INTO Members (email, password, name) VALUES (?, ?, ?)";
-        int memberId = jdbcTemplate.update(sql, member.getEmail(), member.getPassword(), member.getNickname());
+        int memberId = jdbcTemplate.update(sql, member.getEmail(), member.getPassword(), member.getName());
         System.out.println("memberId: "+ memberId);
-        return "Member added successfully";
+
+        Map<String, Object> newMember = getUserByEmail(member.getEmail());
+        // 取得 "member_id" 並轉換為 int
+        return Integer.parseInt(newMember.get("member_id").toString());
     }
 
     public List<Member> getAllMembers() {
@@ -68,15 +72,30 @@ public class MemberService {
 //        jdbcTemplate.update(insertSQL, name, age);
 //    }
 //
-//    // 查詢所有用戶
-//    public List<Member> getAllUsers() {
-//        String querySQL = "SELECT * FROM users";
-//        return jdbcTemplate.query(querySQL, (rs, rowNum) -> new Member(
-//                rs.getLong("id"),
-//                rs.getString("name"),
-//                rs.getInt("age")
-//        ));
-//    }
+    // 查詢所有用戶
+    public List<Member> getAllUsers() {
+        String querySQL = "SELECT * FROM members";
+        return jdbcTemplate.query(querySQL, (rs, rowNum) ->new Member(
+                rs.getInt("member_id"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("name")
+        ));
+    }
+    // 查詢單一用戶
+    public Map<String, Object> getUserByEmail(String email) {
+        String querySQL = "SELECT * FROM members WHERE email = ?";
+
+        // 使用 jdbcTemplate.queryForList 來取得結果並映射為 Map
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(querySQL, email);
+
+        // 如果找到資料，返回第一條紀錄
+        if (!result.isEmpty()) {
+            return result.get(0);  // 返回找到的第一個結果，若需要多筆資料可以返回整個 List
+        } else {
+            return null;  // 如果沒有資料，返回 null
+        }
+    }
 //
 //    // 刪除用戶
 //    public void deleteUser(Long id) {
