@@ -13,46 +13,69 @@
         <script src="/js/common.js"></script>
         
         <script type="text/javascript">
+
+            var currentSessionId = null;
+            var respMap = {};
+            // await  ajax({
+            //     url : "/mission10/resetSession",
+            //     method : "POST",
+            //     data : {
+            //     },
+            //     success : async function(newSessionId) {
+            //         currentSessionId = newSessionId;
+            //         console.log("New sessionId:", currentSessionId);
+            //         var num = randomNum(5, 10);
+            //         for (var i = 0 ; i < num ; i++) {
+            //             await call();
+            //         }
+            //     }
+            // });
+            async function resetSession() {
+                // 1. 重置 session
+                const newSessionId = await new Promise((resolve, reject) => {
+                    ajax({
+                        url: "/mission10/resetSession",
+                        method: "POST",
+                        data: {},
+                        success: function(data) {
+                            resolve(data); // 獲取新的 sessionId
+                        }
+                    });
+                });
+                console.log("New sessionId:", newSessionId);
+                currentSessionId = newSessionId;
+                // 2. 按順序調用 call()
+                for (let i = 0; i < 5; i++) {
+                    const result = await new Promise((resolve, reject) => {
+                        ajax({
+                            url: "/mission10/call",
+                            method: "POST",
+                            headers: {
+                                "X-Session-Id": currentSessionId
+                            },
+                            success: function(data) {
+                                resolve(data); // 返回結果
+                            }
+                        });
+                    });
+                    appendResp(result); // 按順序處理結果
+                }
+            }
+
+            function appendResp(value) {
+                console.log('appendResp:',value);
+                var displayClass = "badge badge-danger";
+                if (typeof respMap[value] === "undefined") {
+                    displayClass = "badge badge-success";
+                    respMap[value] = value;
+                }
+                $("#response").append("<span class='"+displayClass+"'>"+value+"</span>");
+            }
             $(function() {
 
-                var respMap = {};
 
-                function call() {
-                    ajax({
-                        url : "/mission10/call", 
-                        method : "POST", 
-                        data : {
-                        }, 
-                        success : function(data) {
-                            appendResp(data);
-                        }
-                    });
-                }
-                function appendResp(value) {
-                    var displayClass = "badge badge-danger";
-                    if (typeof respMap[value] === "undefined") {
-                        displayClass = "badge badge-success";
-                        respMap[value] = value;
-                    }
-                    $("#response").append("<span class='"+displayClass+"'>"+value+"</span>");
-                }
-                function resetSession() {
-                    ajax({
-                        url : "/mission10/resetSession",
-                        method : "POST",
-                        data : {
-                        },
-                        success : function(data) {
-                            var num = randomNum(5, 10);
-                            for (var i = 0 ; i < num ; i++) {
-                                call();
-                            }
-                        }
-                    });
-                }
                 $("#btn1").click(function() {
-                    resetSession()
-
+                    call();
                 });
             });
         </script>
