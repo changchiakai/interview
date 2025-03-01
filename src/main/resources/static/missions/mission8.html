@@ -4,11 +4,11 @@
         <title>任務8 - 儲存會員喜好</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
+
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" rel="stylesheet">
         <link href="/css/common.css" rel="stylesheet">
-        
+
         <style>
             #interestContainer .btnInterest .iconChecked {
                 display: none;
@@ -24,22 +24,22 @@
                 overflow-y: auto;
             }
         </style>
-        
+
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
         <script src="/js/common.js"></script>
-        
+
         <script type="text/javascript">
             $(function() {
-                
+
                 var INTERESTS = {
-                    "Movie" : "電影", 
-                    "Food" : "美食", 
-                    "Sport" : "運動", 
-                    "Travel" : "旅遊", 
+                    "Movie" : "電影",
+                    "Food" : "美食",
+                    "Sport" : "運動",
+                    "Travel" : "旅遊",
                     "Music" : "音樂"
                 };
-                
+
                 $("#interestContainer").on("click", ".btnInterest", function() {
                     $(this).toggleClass("checked");
                 });
@@ -48,17 +48,19 @@
                     var interestList = [];
                     $("#interestContainer .btnInterest").each(function(i, btn) {
                         interestList.push({
-                            "key" : $(btn).attr("data-key"), 
+                            "key" : $(btn).attr("data-key"),
                             "isChecked" : $(btn).hasClass("checked")
                         });
                     });
 
                     ajax({
-                        url : "/mission8/saveInterest", 
-                        method : "POST", 
-                        data : {
-                            json : JSON.stringify(interestList)
-                        }, 
+                        url : "/mission8/saveInterest",
+                        method : "POST",
+                        data : JSON.stringify(interestList),
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response2").text(prettyJSON(data));
                             if (data.success === true) {
@@ -67,27 +69,30 @@
                         }
                     });
                 });
-                
+
                 function initInterestTable() {
                     var tbody = $("#interestTable tbody").empty();
                     var cnt = 0;
                     var tr = $("<tr></tr>");
                     for (key in INTERESTS) {
                         $(tr).append("<td>"+INTERESTS[key]+"("+key+")</td>");
-                        
+
                         cnt++;
                     }
                     $(tbody).append(tr);
-                    
+
                     $("#interestTable thead th").attr("colspan", (cnt));
                 }
-                
+
                 function reload() {
                     ajax({
-                        url : "/mission8/getInterest", 
+                        url : "/mission8/getInterest",
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response").text(prettyJSON(data));
-                            
+
                             if (data.success === true) {
                                 var con = $("#interestContainer").empty();
                                 $.each(data.interestList, function(i, interest) {

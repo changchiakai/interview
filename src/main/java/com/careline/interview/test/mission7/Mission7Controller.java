@@ -18,7 +18,6 @@ public class Mission7Controller {
     @Autowired
     private MemberService memberService;
 
-
     @PostMapping("uploadPicture")
     public ResponseEntity<Map<String, Object>> uploadPicture(
             @RequestHeader("Authorization") String token,

@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class MemberService {
@@ -174,6 +171,68 @@ public class MemberService {
         }
     }
 
+
+    public   List<Map<String, Object>> getMemberInterests(int memberId) {
+        String sql = "SELECT is_movie_checked, is_food_checked, is_sport_checked, is_travel_checked, is_music_checked FROM member_interest WHERE member_id = ?";
+
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> interestList = new ArrayList<>();
+        try {
+            // 查询数据
+            Map<String, Object> result = jdbcTemplate.queryForMap(sql, memberId);
+
+            // 获取每个兴趣项并填充到 interestList
+            // 获取每个兴趣项并填充到 interestList
+            interestList.add(createInterestItem("Movie", (Boolean) result.get("is_movie_checked")));
+            interestList.add(createInterestItem("Food", (Boolean) result.get("is_food_checked")));
+            interestList.add(createInterestItem("Sport", (Boolean) result.get("is_sport_checked")));
+            interestList.add(createInterestItem("Travel", (Boolean) result.get("is_travel_checked")));
+            interestList.add(createInterestItem("Music", (Boolean) result.get("is_music_checked")));
+            return interestList;
+
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    public  boolean  saveMemberInterests(int memberId,List<Map<String, Object>> interests) {
+
+        Map<String, Boolean> interestMap = convertToInterestMap(interests);
+        String sql = "INSERT INTO member_interest (member_id, is_movie_checked, is_food_checked, is_sport_checked, is_travel_checked, is_music_checked) " +
+                "VALUES (?, ?, ?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE " +
+                "is_movie_checked = ?, is_food_checked = ?, is_sport_checked = ?, is_travel_checked = ?, is_music_checked = ?";
+
+        try {
+            // 设置 SQL 参数
+            jdbcTemplate.update(sql, memberId,
+                    interestMap.get("Movie"), interestMap.get("Food"), interestMap.get("Sport"),
+                    interestMap.get("Travel"), interestMap.get("Music"),
+                    interestMap.get("Movie"), interestMap.get("Food"), interestMap.get("Sport"),
+                    interestMap.get("Travel"), interestMap.get("Music"));
+            return true;
+        } catch (Exception e) {
+            // 捕获数据库访问异常并返回false
+            return false;
+        }
+    }
+    private Map<String, Object> createInterestItem(String key, boolean isChecked) {
+        Map<String, Object> interestItem = new HashMap<>();
+        interestItem.put("key", key);
+        interestItem.put("isChecked", isChecked);
+        return interestItem;
+    }
+
+    private Map<String, Boolean> convertToInterestMap(List<Map<String, Object>> interests) {
+        Map<String, Boolean> interestMap = new HashMap<>();
+        for (Map<String, Object> interest : interests) {
+            String key = (String) interest.get("key");
+            Boolean isChecked = (Boolean) interest.get("isChecked");
+            interestMap.put(key, isChecked);
+        }
+        return interestMap;
+    }
     //    private final JdbcTemplate jdbcTemplate;
 //
 //    public Mission3Service(JdbcTemplate jdbcTemplate) {
