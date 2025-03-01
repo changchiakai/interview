@@ -22,7 +22,10 @@
                         method : "POST", 
                         data : new FormData($("#dataForm")[0]), 
                         processData: false,
-                        contentType: false, 
+                        contentType: false,
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response").text(prettyJSON(data));
                         }
@@ -36,7 +39,10 @@
                         method : "POST", 
                         data : new FormData($("#dataForm2")[0]), 
                         processData: false,
-                        contentType: false, 
+                        contentType: false,
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response").text(prettyJSON(data));
                         }

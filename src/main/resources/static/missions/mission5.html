@@ -26,8 +26,8 @@
                         success : function(data) {
                             console.log("data:", data);
                             if(data.success){
-                                sessionStorage.clear();
-                                sessionStorage.setItem("token",data.token);
+                                localStorage.clear();
+                                localStorage.setItem("token",data.token);
                             }
                             $("#response").text(prettyJSON(data));
                         }
@@ -39,9 +39,10 @@
                         url : "/mission5/logout",
                         method : "POST",
                         headers: {
-                            "Authorization":   sessionStorage.getItem('token')
+                            "Authorization":   localStorage.getItem('token')
                         },
                         success : function(data) {
+                            localStorage.removeItem('token');
                             $("#response").text(prettyJSON(data));
                         }
                     });

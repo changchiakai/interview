@@ -21,3 +21,9 @@ CREATE TABLE blacklisted_tokens (
     token VARCHAR(500) PRIMARY KEY,
     expiry_time TIMESTAMP
 );
+
+
+CREATE TABLE profile_operation_log (
+    operation VARCHAR(500) ,
+    update_time TIMESTAMP PRIMARY KEY
+);
