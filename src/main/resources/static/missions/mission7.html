@@ -22,7 +22,10 @@
                         method : "POST", 
                         data: new FormData($('#dataForm')[0]),
                         processData: false,
-                        contentType: false, 
+                        contentType: false,
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response").text(prettyJSON(data));
                         }
@@ -33,6 +36,9 @@
                     
                     ajax({
                         url : "/mission7/getPicture",
+                        headers: {
+                            "Authorization":   localStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response2").text(prettyJSON(data));
                             if (data.success === true) {

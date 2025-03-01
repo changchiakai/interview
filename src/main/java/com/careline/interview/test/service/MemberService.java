@@ -35,7 +35,7 @@ public class MemberService {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
                 response.put("errorMsg", "");
-                response.put("token", JwtTokenUtils.generateToken(member_id, name,loginRequest.getEmail())); // 可換成 JWT
+                response.put("token", JwtTokenUtils.generateToken(member_id, name, loginRequest.getEmail())); // 可換成 JWT
                 return response;
             }
         } catch (Exception e) {
@@ -99,7 +99,7 @@ public class MemberService {
         String sql = "UPDATE Members SET name = ?, email = ? WHERE member_id = ?";
 
         // 使用 jdbcTemplate.update 來執行 SQL 更新操作
-        int rowsAffected = jdbcTemplate.update(sql, name, email,Integer.parseInt(memberData.get("member_id").toString()));
+        int rowsAffected = jdbcTemplate.update(sql, name, email, Integer.parseInt(memberData.get("member_id").toString()));
 
         if (rowsAffected > 0) {
             recordOpLog(memberData, email, name);
@@ -113,7 +113,6 @@ public class MemberService {
             // 如果沒有更新到資料，返回 null 或根據需求拋出異常
             return null;
         }
-
 
 
     }
@@ -222,8 +221,31 @@ public class MemberService {
             return null;  // 如果沒有資料，返回 null
         }
     }
+
     public Map<String, Object> getUserByMemberId(String memberId) {
         String querySQL = "SELECT * FROM members WHERE member_id = ?";
+
+        // 使用 jdbcTemplate.queryForList 來取得結果並映射為 Map
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(querySQL, memberId);
+
+        // 如果找到資料，返回第一條紀錄
+        if (!result.isEmpty()) {
+            return result.get(0);  // 返回找到的第一個結果，若需要多筆資料可以返回整個 List
+        } else {
+            return null;  // 如果沒有資料，返回 null
+        }
+    }
+
+    public boolean saveMemberPicture(int memberId, String base64Image) {
+
+        String sql = "INSERT INTO member_picture (member_id, pictureBase64) VALUES (?, ?)";
+        int count = jdbcTemplate.update(sql, memberId, base64Image);
+        return count > 0;
+    }
+
+    public Map<String, Object> getMemberPicture(int memberId) {
+
+        String querySQL = "SELECT * FROM member_picture WHERE member_id = ?";
 
         // 使用 jdbcTemplate.queryForList 來取得結果並映射為 Map
         List<Map<String, Object>> result = jdbcTemplate.queryForList(querySQL, memberId);
@@ -240,14 +262,15 @@ public class MemberService {
         String origName = extMember.get("name").toString();
         String origEmail = extMember.get("email").toString();
 
-        String operationText = "使用者:"+ extMember.get("member_id ").toString()+"修改資料，原始名稱:" + origName + " 調整為:" + name + ",原始信箱:" + origEmail + " 調整為:" + email;
+        String operationText = "使用者:" + extMember.get("member_id ").toString() + "修改資料，原始名稱:" + origName + " 調整為:" + name + ",原始信箱:" + origEmail + " 調整為:" + email;
         String sql = "INSERT INTO profile_operation_log (operation,update_time) VALUES (?, ?)";
         int add = jdbcTemplate.update(sql, operationText, new Date());
         System.out.println("add: " + add);
     }
+
     private void recordOpLogPwd(String email) {
 
-        String operationText = "使用者信箱:"+ email +" , 進行修改密碼";
+        String operationText = "使用者信箱:" + email + " , 進行修改密碼";
         String sql = "INSERT INTO profile_operation_log (operation,update_time) VALUES (?, ?)";
         int add = jdbcTemplate.update(sql, operationText, new Date());
         System.out.println("add: " + add);

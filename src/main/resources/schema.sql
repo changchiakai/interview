@@ -27,3 +27,9 @@ CREATE TABLE profile_operation_log (
     operation VARCHAR(500) ,
     update_time TIMESTAMP PRIMARY KEY
 );
+
+CREATE TABLE member_picture (
+           id INT AUTO_INCREMENT PRIMARY KEY,
+           member_id INT NOT NULL,
+           pictureBase64 TEXT  NOT NULL
+);
