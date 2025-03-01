@@ -20,7 +20,10 @@ public class Member {
         this.password = password;
         this.name = name;
     }
-
+    public Member(int member_id,String name) {
+        this.member_id = member_id;
+        this.name = name;
+    }
 
     public Member() {
     }

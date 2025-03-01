@@ -2,23 +2,18 @@ package com.careline.interview.test.mission8;
 
 import com.careline.interview.test.component.JwtTokenUtils;
 import com.careline.interview.test.service.MemberService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("mission8")
 public class Mission8Controller {
 
-    private ObjectMapper objectMapper;
     @Autowired
     private MemberService memberService;
     @GetMapping("getInterest")

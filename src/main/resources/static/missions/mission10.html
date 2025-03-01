@@ -16,20 +16,6 @@
 
             var currentSessionId = null;
             var respMap = {};
-            // await  ajax({
-            //     url : "/mission10/resetSession",
-            //     method : "POST",
-            //     data : {
-            //     },
-            //     success : async function(newSessionId) {
-            //         currentSessionId = newSessionId;
-            //         console.log("New sessionId:", currentSessionId);
-            //         var num = randomNum(5, 10);
-            //         for (var i = 0 ; i < num ; i++) {
-            //             await call();
-            //         }
-            //     }
-            // });
             async function resetSession() {
                 // 1. 重置 session
                 const newSessionId = await new Promise((resolve, reject) => {

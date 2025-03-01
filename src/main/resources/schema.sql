@@ -20,6 +20,12 @@ CREATE TABLE members
     name      VARCHAR(100) NOT NULL
 );
 
+CREATE TABLE online_tokens
+(
+    member_id INT PRIMARY KEY,
+    token       VARCHAR(500)
+);
+
 CREATE TABLE blacklisted_tokens
 (
     token       VARCHAR(500) PRIMARY KEY,

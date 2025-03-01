@@ -1,32 +1,379 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>任務11 - 會員管理介面</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/css/common.css" rel="stylesheet">
-        
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-        <script src="/js/common.js"></script>
+<head>
+    <title>任務11 - 會員管理介面</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    </head>
-    <body>
-        <div class="container-fluid">
-            <div class="card">
-                <div class="card-header">
-                    任務11 - 會員管理介面
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/common.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="/js/common.js"></script>
+    <script type="text/javascript">
+        function forceLogout(memberId) {
+            $.ajax({
+                url: "/mission11/force-logout/" + memberId,
+                type: "POST",
+                contentType: "application/json",
+                headers: {
+                    "Authorization": localStorage.getItem('token')
+                },
+                success: function (response) {
+                    alert("已強制登出!!");
+                    loadOnlineMembers();
+                },
+                error: function (xhr) {
+                    alert("強制登出失敗: " + xhr.responseText);
+                }
+            });
+        }
+
+        function loadOnlineMembers() {
+
+            ajax({
+                url: "/mission11/online",
+                method: "GET",
+                processData: false,
+                contentType: false,
+                data: {},
+                headers: {
+                    "Authorization": localStorage.getItem('token')
+                },
+                success: function (data) {
+                    let table = $("#online-members-table");
+                    table.empty();
+                    data.forEach(member => {
+                        table.append(`
+                                    <tr>
+                                    <td>${member.member_id}</td>
+                                    <td>${member.name}</td>
+                                    <td><button onclick="forceLogout(${member.member_id})">強制登出</button></td>
+                                    </tr>
+                                    `);
+                    });
+                }
+            });
+
+        }
+
+        function loadAllMembers() {
+            $("#all-members-section").show();
+            $("#search-member-section").hide();
+
+            $.get("/mission11/list", function(data) {
+                let table = $("#all-members-table");
+                table.empty();
+                data.forEach(member => {
+                    table.append(`
+                        <tr>
+                            <td>${member.member_id}</td>
+                            <td>${member.name}</td>
+                            <td>${member.email}</td>
+                            <td><button onclick="showMemberDetail(${member.member_id})">查看</button></td>
+                            <td><button onclick="showEditForm(${member.member_id})">編輯</button></td>
+                        </tr>
+                    `);
+                });
+            });
+        }
+
+        function showSearchForm() {
+            $("#all-members-section").hide();
+            $("#search-member-section").show();
+            $("#member-detail").empty();
+        }
+
+        function showMemberDetail(memberId = null) {
+            if (!memberId) {
+                memberId = $("#search-member-id").val();
+            }
+            if (!memberId) {
+                alert("請輸入會員ID");
+                return;
+            }
+
+            $.get(`/mission11/member/${memberId}`, function(data) {
+
+                // 更新 modal 內容
+                $("#modal-member-id").text(data.memberId);
+                $("#modal-member-name").text(data.name);
+                $("#modal-member-email").text(data.email);
+                $("#modal-member-email").text(data.email);
+                // 如果有圖片資料，顯示圖片
+                if (data.pictureBase64) {
+                    $("#modal-member-picture").attr("src", `${data.pictureBase64}`);
+                } else {
+                    $("#modal-member-picture").hide(); // 如果沒有圖片，隱藏圖片區域
+                    $("#modal-member-picture").attr("src", "/path/to/default/image.jpg"); // 預設圖片
+                }
+
+                // 顯示 modal
+                $("#memberModal").modal("show");
+
+            }).fail(function() {
+                alert("會員資料未找到");
+                $("#member-detail").empty();
+            });
+        }
+
+        function showEditForm(memberId) {
+
+            // 获取会员详细資料
+            $.get(`/mission11/member/${memberId}`, function(data) {
+
+                // 填充表单
+                $("#edit-member-id").val(data.memberId);
+                $("#edit-member-name").val(data.name);
+                $("#edit-member-email").val(data.email);
+
+                // 处理图片预览
+                if (data.pictureBase64) {
+                    $("#edit-member-picture-preview").attr("src", data.pictureBase64).show();
+                } else {
+                    $("#edit-member-picture-preview").hide();
+                }
+
+                // 显示模态框
+                $('#editMemberModal').modal('show');
+
+            }).fail(() => alert("載入失敗"));
+        }
+        function previewImage(event) {
+            const input = event.target; // 獲取文件輸入元素
+            const preview = document.getElementById('edit-member-picture-preview'); // 預覽圖元素
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader(); // 新建 FileReader
+
+                // 文件讀取完成後觸發
+                reader.onload = function(e) {
+                    preview.src = e.target.result; // 將圖片數據設置到預覽圖的src
+                    preview.style.display = 'block'; // 顯示預覽圖
+                };
+
+                reader.readAsDataURL(input.files[0]); // 以DataURL形式讀取文件
+            }
+        }
+        $(function () {
+
+
+            loadOnlineMembers();
+            loadAllMembers()
+
+            $("#btn1").click(function() {
+
+                ajax({
+                    url : "/mission3/register",
+                    method : "POST",
+                    data : new FormData($("#dataForm")[0]),
+                    processData: false,
+                    contentType: false,
+                    success : function(data) {
+                        if(data.msg){
+                            alert(data.msg);
+                        }else{
+                            $("#email").val('');
+                            $("#password").val('');
+                            $("#name").val('');
+                            loadAllMembers()
+
+                        }
+                    },
+                    error: function (data){
+                        console.log(data)
+                    }
+                });
+            });
+
+
+            $('#btnSaveChanges').click(function() {
+                const formData = new FormData($('#editMemberForm')[0]);
+
+                $.ajax({
+                    url: "/mission11/member/update",
+                    method: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        "Authorization": localStorage.getItem('token')
+                    },
+                    success: function(response) {
+                        alert("更新成功！");
+                        $('#memberModal').modal('hide');
+                        loadAllMembers(); // 刷新列表
+                    },
+                    error: function(xhr) {
+                        alert("更新失败: " + xhr.responseJSON?.message || '未知错误');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="container-fluid">
+
+    <div class="card">
+        <div class="card-header">
+            任務11 - 會員管理介面
+        </div>
+        <div class="card-body">
+            <p class="card-text">請設計一個【會員管理介面】(包含頁面UI和Server API), 包含以下功能</p>
+            <p class="card-text"> - 查詢現有會員資料 (清單顯示, 單筆顯示)</p>
+            <p class="card-text"> - 新增會員資料</p>
+            <p class="card-text"> - 修改會員資料(Email, 名稱, 密碼, 照片)</p>
+            <p class="card-text"> - 強制登出會員</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            查詢現有會員資料
+        </div>
+        <div class="card-body">
+            <div id="all-members-section" style="display: none;">
+                <h3>會員清單</h3>
+                <table border="1">
+                    <thead>
+                    <tr>
+                        <th>會員ID</th>
+                        <th>姓名</th>
+                        <th>Email</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="all-members-table"></tbody>
+                </table>
+
+                <!-- Modal -->
+                <div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="memberModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="memberModalLabel">會員詳細資料</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>會員 ID：</strong> <span id="modal-member-id"></span></p>
+                                <p><strong>姓名：</strong> <span id="modal-member-name"></span></p>
+                                <p><strong>Email：</strong> <span id="modal-member-email"></span></p>
+                                <img id="modal-member-picture" src="" alt="Member Picture" />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">請設計一個【會員管理介面】(包含頁面UI和Server API), 包含以下功能</p>
-                    <p class="card-text"> - 查詢現有會員資料 (清單顯示, 單筆顯示)</p>
-                    <p class="card-text"> - 新增會員資料</p>
-                    <p class="card-text"> - 修改會員資料(Email, 名稱, 密碼, 照片)</p>
-                    <p class="card-text"> - 強制登出會員</p>
+
+
+                <div class="modal fade" id="editMemberModal" tabindex="-1" role="dialog" aria-labelledby="memberModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+
+
+                            <div class="modal-body">
+                                <form id="editMemberForm">
+                                    <input type="hidden" id="edit-member-id" name="memberId" />
+
+                                    <div class="form-group">
+                                        <label><strong>姓名：</strong></label>
+                                        <input type="text" class="form-control" id="edit-member-name" name="name" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Email：</strong></label>
+                                        <input type="email" class="form-control" id="edit-member-email" name="email" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>原始密碼：</strong></label>
+                                        <input type="password" class="form-control" id="edit-member-old-password" name="old-password" placeholder="(留空不修改)" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>新密碼：</strong></label>
+                                        <input type="password" class="form-control" id="edit-member-new-password" name="new-password" placeholder="(留空不修改)" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>驗證新密碼：</strong></label>
+                                        <input type="password" class="form-control" id="edit-member-verify-password" name="verify-password" placeholder="(留空不修改)" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>照片：</strong></label>
+                                        <img id="edit-member-picture-preview" src="" class="img-thumbnail mb-2" style="max-width: 200px; display: none;" />
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="edit-member-picture" name="picture"  onchange="previewImage(event)" >
+                                            <label class="custom-file-label" for="edit-member-picture">選擇新照片</label>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="btnSaveChanges">存檔</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
+
+
         </div>
-    </body>
+    </div>
+    <div class="card">
+        <div class="card-header">
+           新增會員
+        </div>
+        <div class="card-body">
+            <form id="dataForm">
+                <table class="">
+                    <tbody>
+                    <tr>
+                        <th>E-Mail (必需唯一, 用來登入)</th>
+                        <td><input type="text" id="email" name="email" /></td>
+                    </tr>
+                    <tr>
+                        <th>密碼</th>
+                        <td><input type="password" id="password" name="password" /></td>
+                    </tr>
+                    <tr>
+                        <th>會員稱呼</th>
+                        <td><input type="text" id="name" name="name"  /></td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td class="text-right" colspan="2">
+                            <button id="btn1" type="button" class="btn btn-primary">送出</button>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </form>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            強制會員登出-在線會員
+        </div>
+        <div class="card-body">
+            <table border="1">
+                <thead>
+                <tr>
+                    <th>會員ID</th>
+                    <th>Token</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="online-members-table"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
 </html>

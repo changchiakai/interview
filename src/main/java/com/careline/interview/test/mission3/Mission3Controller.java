@@ -37,14 +37,14 @@ public class Mission3Controller {
         }
 
         // 檢查信箱是否已註冊
-        if (mission3Service.isEmailRegistered(email)) {
+        if (mission3Service.checkEmailRegister(email)) {
             return ResponseEntity.ok().body(new ErrorResponse("Email 已經被註冊"));
         }
 
         Member member = new Member(email, password, name);
         System.out.println("member:" +member);
 
-       int memberId =  mission3Service.addMember(member);
+       int memberId =  mission3Service.createMember(member);
 
 
         return ResponseEntity.ok(new RegisterResponse(memberId));

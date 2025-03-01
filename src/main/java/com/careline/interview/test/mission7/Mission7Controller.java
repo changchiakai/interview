@@ -1,5 +1,6 @@
 package com.careline.interview.test.mission7;
 
+import com.careline.interview.test.component.Base64Utils;
 import com.careline.interview.test.component.JwtTokenUtils;
 import com.careline.interview.test.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,9 @@ public class Mission7Controller {
 
         try {
             // 將檔案轉換成 Base64 字串
-            String base64Image = convertToBase64(picture);
+            String base64Image = Base64Utils.convertToBase64(picture);
 
-            boolean status = memberService.saveMemberPicture(Integer.parseInt(memberId),base64Image);
+            boolean status = memberService.saveAndUpdateMemberPicture(Integer.parseInt(memberId),base64Image);
 
             resp.put("success", status);
             resp.put("errorMsg", "");
@@ -76,13 +77,5 @@ public class Mission7Controller {
         resp.put("imageUrl", memberPicture == null ? "" : "data:image/jpeg;base64,"+memberPicture.get("picturebase64").toString());
         resp.put("errorMsg", "");
         return ResponseEntity.ok(resp);
-    }
-
-
-
-    // 將圖片轉換為 Base64 字串
-    private String convertToBase64(MultipartFile picture) throws IOException {
-        byte[] fileBytes = picture.getBytes();
-        return Base64.getEncoder().encodeToString(fileBytes);
     }
 }
