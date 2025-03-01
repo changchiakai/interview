@@ -22,10 +22,6 @@ public class Mission6Controller {
             @RequestHeader("Authorization") String token,
             @RequestParam String email, @RequestParam String name
     ) {
-
-        System.out.println("email:" + email);
-        System.out.println("name:" + name);
-
         Map<String, Object> resp = new HashMap<>();
         if (!memberService.tokenVerify(token)) {
             resp.put("success", false);
@@ -71,4 +67,29 @@ public class Mission6Controller {
 
 //
 //    updatePassword
+
+    @PostMapping("updatePassword")
+    public ResponseEntity<?> updatePassword(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword,
+            @RequestParam String newPasswordConfirm
+    ) {
+        System.out.println("oldPassword:"+ oldPassword);
+        System.out.println("newPassword:"+ newPassword);
+        System.out.println("newPasswordConfirm:"+ newPasswordConfirm);
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            Member updatedMember = memberService.updatePassword(oldPassword, newPassword, newPasswordConfirm, JwtTokenUtils.getEmailFromToken(token));
+            resp.put("success", true);
+            resp.put("errorMsg", "");
+            return ResponseEntity.ok(resp);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // 若出現錯誤，返回 400 錯誤和錯誤訊息
+            resp.put("success", false);
+            resp.put("errorMsg", e.getMessage());
+            return ResponseEntity.ok(resp);
+//            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

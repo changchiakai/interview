@@ -35,7 +35,7 @@ public class MemberService {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
                 response.put("errorMsg", "");
-                response.put("token", JwtTokenUtils.generateToken(member_id, name)); // 可換成 JWT
+                response.put("token", JwtTokenUtils.generateToken(member_id, name,loginRequest.getEmail())); // 可換成 JWT
                 return response;
             }
         } catch (Exception e) {
@@ -116,6 +116,35 @@ public class MemberService {
 
 
 
+    }
+
+    public Member updatePassword(String oldPassword, String newPassword, String newPasswordConfirm, String email) {
+        // 1. 檢查舊密碼是否正確
+        String checkOldPasswordSQL = "SELECT password FROM Members WHERE email = ?";
+        String currentPassword = jdbcTemplate.queryForObject(checkOldPasswordSQL, String.class, email);
+
+        if (!oldPassword.equals(currentPassword)) {
+            throw new IllegalArgumentException("原始密碼錯誤");
+        }
+
+        // 2. 檢查新密碼和確認新密碼是否一致
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new IllegalArgumentException("新密碼兩次輸入不同，請重新輸入");
+        }
+
+        // 3. 更新資料庫中的密碼
+        String updatePasswordSQL = "UPDATE Members SET password = ? WHERE email = ?";
+        int rowsAffected = jdbcTemplate.update(updatePasswordSQL, newPassword, email);
+
+        if (rowsAffected > 0) {
+            recordOpLogPwd(email);
+            Member updatedMember = new Member();
+            updatedMember.setEmail(email);
+            updatedMember.setPassword(newPassword);
+            return updatedMember;
+        } else {
+            throw new IllegalStateException("更新失敗");
+        }
     }
 
     public List<Member> getAllMembers() {
@@ -208,18 +237,20 @@ public class MemberService {
     }
 
     private void recordOpLog(Map<String, Object> extMember, String email, String name) {
-//        CREATE TABLE profile_operation_log (
-//                operation VARCHAR(500) PRIMARY KEY,
-//                update_time TIMESTAMP
-//        );
         String origName = extMember.get("name").toString();
         String origEmail = extMember.get("email").toString();
 
-        String operationText = "原始名稱:" + origName + " 調整為:" + name + ",原始信箱:" + origEmail + " 調整為:" + email;
+        String operationText = "使用者:"+ extMember.get("member_id ").toString()+"修改資料，原始名稱:" + origName + " 調整為:" + name + ",原始信箱:" + origEmail + " 調整為:" + email;
         String sql = "INSERT INTO profile_operation_log (operation,update_time) VALUES (?, ?)";
         int add = jdbcTemplate.update(sql, operationText, new Date());
         System.out.println("add: " + add);
+    }
+    private void recordOpLogPwd(String email) {
 
+        String operationText = "使用者信箱:"+ email +" , 進行修改密碼";
+        String sql = "INSERT INTO profile_operation_log (operation,update_time) VALUES (?, ?)";
+        int add = jdbcTemplate.update(sql, operationText, new Date());
+        System.out.println("add: " + add);
     }
 ////
 //    // 刪除用戶

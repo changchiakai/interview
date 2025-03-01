@@ -20,10 +20,11 @@ public class JwtTokenUtils implements Serializable {
     private static final String SECRET = "interview";
 
 
-    public static String generateToken(int member_id,String name) {
+    public static String generateToken(int member_id,String name,String email) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("member_id", member_id);
         claims.put("name", name);
+        claims.put("email", email);
         return Jwts.builder()
                 .setClaims(claims)
                 .setExpiration(new Date(Instant.now().toEpochMilli() + EXPIRATION_TIME))
@@ -73,5 +74,9 @@ public class JwtTokenUtils implements Serializable {
     public static String getMemberIdFromToken(String token) {
         String member_id = getClaimsFromToken(token).get("member_id").toString();
         return member_id;
+    }
+    public static String getEmailFromToken(String token) {
+        String email = getClaimsFromToken(token).get("email").toString();
+        return email;
     }
 }
