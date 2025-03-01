@@ -1,7 +1,7 @@
 package com.careline.interview.test.mission4;
 
-import com.careline.interview.test.dto.MemberDto;
 import com.careline.interview.test.entity.Member;
+import com.careline.interview.test.dto.MemberDto;
 import com.careline.interview.test.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,15 +18,15 @@ public class Mission4Controller {
 
 
     @Autowired
-    private MemberService mission3Service;
+    private MemberService memberService;
 
     @GetMapping("getAllMembers")
     public ResponseEntity<Object> getAllMembers() {
-        List<Member> memberList =  mission3Service.getAllUsers();
+        List<Member> memberList =  memberService.getAllUsers();
 
         memberList.stream()
                 .map(member -> new MemberDto(
-                        member.getId(),       // 會員ID
+                        member.getMember_id(),       // 會員ID
                         member.getEmail(),    // 會員Email
                         member.getName()  // 會員名稱
                 ))

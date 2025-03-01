@@ -24,6 +24,11 @@
                         processData: false,
                         contentType: false, 
                         success : function(data) {
+                            console.log("data:", data);
+                            if(data.success){
+                                sessionStorage.clear();
+                                sessionStorage.setItem("token",data.token);
+                            }
                             $("#response").text(prettyJSON(data));
                         }
                     });
@@ -32,7 +37,10 @@
                 $("#btn2").click(function() {
                     ajax({
                         url : "/mission5/logout",
-                        method : "POST", 
+                        method : "POST",
+                        headers: {
+                            "Authorization":   sessionStorage.getItem('token')
+                        },
                         success : function(data) {
                             $("#response").text(prettyJSON(data));
                         }
@@ -61,11 +69,11 @@
                                     <tbody>
                                         <tr>
                                             <th>E-Mail</th>
-                                            <td><input type="text" name="email" /></td>
+                                            <td><input type="text" name="email" value="test@gmail.com"/></td>
                                         </tr>
                                         <tr>
                                             <th>密碼</th>
-                                            <td><input type="password" name="password" /></td>
+                                            <td><input type="password" name="password" value="555"/></td>
                                         </tr>
                                     </tbody>
                                     <tfoot>

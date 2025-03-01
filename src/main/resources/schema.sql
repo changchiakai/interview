@@ -16,3 +16,8 @@ CREATE TABLE members (
      password VARCHAR(255) NOT NULL,
      name VARCHAR(100) NOT NULL
 );
+
+CREATE TABLE blacklisted_tokens (
+    token VARCHAR(500) PRIMARY KEY,
+    expiry_time TIMESTAMP
+);

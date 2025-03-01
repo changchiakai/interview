@@ -52,7 +52,9 @@ public class Mission3Controller {
 
     @GetMapping("/all")
     public List<Member> getAllMembers() {
+
         return mission3Service.getAllMembers();
+
     }
 
 

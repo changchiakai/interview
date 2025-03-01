@@ -1,7 +1,7 @@
 package com.careline.interview.test.entity;
 
 public class Member {
-    private int id;
+    private int member_id;
     private String email;
     private String password;
     private String name;
@@ -14,8 +14,8 @@ public class Member {
     }
 
     // Constructors, Getters, and Setters
-    public Member(int id, String email, String password, String name) {
-        this.id = id;
+    public Member(int member_id, String email, String password, String name) {
+        this.member_id = member_id;
         this.email = email;
         this.password = password;
         this.name = name;
@@ -25,12 +25,13 @@ public class Member {
     public Member() {
     }
 
-    public int getId() {
-        return id;
+
+    public int getMember_id() {
+        return member_id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setMember_id(int member_id) {
+        this.member_id = member_id;
     }
 
     public String getEmail() {
