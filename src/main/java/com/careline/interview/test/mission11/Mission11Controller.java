@@ -1,6 +1,8 @@
 package com.careline.interview.test.mission11;
 
 import com.careline.interview.test.component.Base64Utils;
+import com.careline.interview.test.dto.ErrorResponse;
+import com.careline.interview.test.dto.RegisterResponse;
 import com.careline.interview.test.entity.Member;
 import com.careline.interview.test.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("mission11")
 public class Mission11Controller {
+
     @Autowired
     private MemberService memberService;
 
@@ -31,58 +35,77 @@ public class Mission11Controller {
         return member != null ? ResponseEntity.ok(member) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("memberUpdate")
-    public ResponseEntity<?> updateMember(
+    @PostMapping("member/create")
+    public ResponseEntity<?> adminCreateMember(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "picture", required = false) MultipartFile pictureFile) {
+
+        Map<String, Object> verifyData = memberService.memberDataVerify(email, password, name, true,true);
+        if (!(Boolean) verifyData.get("success")) {
+            return ResponseEntity.ok(verifyData);
+        }
+        System.out.println(" 沒有註冊過");
+        Member member = new Member(email, password, name);
+        int memberId = memberService.createMember(member);
+        if (pictureFile != null) {
+            String base64Image = Base64Utils.convertToBase64(pictureFile);
+            boolean status = memberService.saveAndUpdateMemberPicture(memberId, base64Image);
+            if (!status) {
+                Map<String, Object> resp = new HashMap<>();
+                // 回傳結果
+                resp.put("success", false);
+                resp.put("errorMsg", "照片上傳失敗,稍後再試");
+                return ResponseEntity.ok(resp);
+            }
+        }
+
+        return ResponseEntity.ok(new RegisterResponse(memberId));
+    }
+
+    @PostMapping("member/update")
+    public ResponseEntity<?> adminUpdateMember(
             @RequestParam("memberId") String memberId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "oldPassword", required = false) String oldPassword,
-            @RequestParam(value = "newPassword", required = false) String newPassword,
-            @RequestParam(value = "verifyPassword", required = false) String verifyPassword,
+            @RequestParam(value = "new-password", required = false) String newPassword,
             @RequestParam(value = "picture", required = false) MultipartFile pictureFile) {
+        Map<String, Object> resp = new HashMap<>();
+        // 比對舊資料 沒有的就清空
+        Map<String, Object> oldMemberData = memberService.getMemberById(Integer.parseInt(memberId));
 
-        // 基本驗證邏輯
-        // 1. 信箱是否已存在
-        // 2. 信箱是否符合邏輯
-        // 3. 舊密碼 和新密碼兩次驗證是否正確
-        // 4. 圖轉換
+        // 如果信箱這次沒有異動
+        Map<String, Object> verifyData = memberService.memberDataVerify(email, newPassword, name, false,!oldMemberData.get("email").toString().equals(email));
+        if (!(Boolean) verifyData.get("success")) {
+            return ResponseEntity.ok(verifyData);
+        }
 
 
-    // TODO
-//        memberService.updateMemberDataByAdmin(memberId, name,email,newPassword,pictureFile);
+        memberService.updateMemberDataByAdmin(Integer.parseInt(memberId), name, email, newPassword, pictureFile);
 
-        // 1. 校验权限（例如管理员或当前用户）
-        // 2. 更新数据库（示例伪代码）
-//        Map<String, Object> member = memberService.getMemberById(Integer.parseInt(memberId));
-//        if (name != null) member.setName(name);
-//        if (email != null) member.setEmail(email);
-//        if (password != null) member.setPassword(encoder.encode(password));
-//        if (pictureFile != null) {
-//            String pictureBase64 = Base64.getEncoder().encodeToString(pictureFile.getBytes());
-//            member.setPictureBase64(pictureBase64);
-//        }
-//        memberService.save(member);
-
-        return ResponseEntity.ok().build();
+        resp.put("success", true);
+        resp.put("errorMsg", "");
+        return ResponseEntity.ok(resp);
     }
+
     // 取得所有在線會員
     @GetMapping("online")
     public ResponseEntity<List<Member>> getOnlineMembers(@RequestHeader("Authorization") String token) {
-        List<Member>  m =memberService.getOnlineMembers();
+        List<Member> m = memberService.getOnlineMembers();
         System.out.println("m :" + m.toString());
 
-         return ResponseEntity.ok(m);
+        return ResponseEntity.ok(m);
     }
 
     // 強制登出會員
     @PostMapping("force-logout/{memberId}")
     public ResponseEntity<String> forceLogout(
-            @RequestHeader("Authorization") String token,
             @PathVariable int memberId
-           ) {
+    ) {
         System.out.println("Mission11Controller.java forceLogout-33");
         boolean success = memberService.forceLogout(memberId);
-        return success ? ResponseEntity.ok("Member logged out")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to logout");
+        return success ? ResponseEntity.ok("已強制登出")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("該用戶無登入紀錄");
     }
 }

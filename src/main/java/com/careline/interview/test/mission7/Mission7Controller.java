@@ -41,21 +41,15 @@ public class Mission7Controller {
 
         String memberId = JwtTokenUtils.getMemberIdFromToken(token);
 
-        try {
-            // 將檔案轉換成 Base64 字串
-            String base64Image = Base64Utils.convertToBase64(picture);
+        // 將檔案轉換成 Base64 字串
+        String base64Image = Base64Utils.convertToBase64(picture);
 
-            boolean status = memberService.saveAndUpdateMemberPicture(Integer.parseInt(memberId),base64Image);
+        boolean status = memberService.saveAndUpdateMemberPicture(Integer.parseInt(memberId),base64Image);
 
-            resp.put("success", status);
-            resp.put("errorMsg", "");
-            return ResponseEntity.ok(resp);
+        resp.put("success", status);
+        resp.put("errorMsg", "");
+        return ResponseEntity.ok(resp);
 
-        } catch (IOException e) {
-            resp.put("success", false);
-            resp.put("errorMsg", e.getMessage());
-            return ResponseEntity.ok(resp);
-        }
     }
     @GetMapping("getPicture")
     public ResponseEntity<Map<String, Object>> getPicture(

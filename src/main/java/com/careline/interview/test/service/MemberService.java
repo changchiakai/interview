@@ -2,10 +2,12 @@ package com.careline.interview.test.service;
 
 import com.careline.interview.test.component.Base64Utils;
 import com.careline.interview.test.component.JwtTokenUtils;
+import com.careline.interview.test.dto.ErrorResponse;
 import com.careline.interview.test.dto.LoginRequest;
 import com.careline.interview.test.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,21 +118,34 @@ public class MemberService {
 
 
     }
-
-    public Member updatePassword(String oldPassword, String newPassword, String newPasswordConfirm, String email) {
+    public  Map<String, Object> checkPassword(String oldPassword, String newPassword, String newPasswordConfirm, String email) {
+        Map<String, Object> resp = new HashMap<>();
         // 1. 檢查舊密碼是否正確
         String checkOldPasswordSQL = "SELECT password FROM Members WHERE email = ?";
         String currentPassword = jdbcTemplate.queryForObject(checkOldPasswordSQL, String.class, email);
-
+        String errorMessage = "";
         if (!oldPassword.equals(currentPassword)) {
-            throw new IllegalArgumentException("原始密碼錯誤");
+            errorMessage = "原始密碼錯誤";
         }
 
         // 2. 檢查新密碼和確認新密碼是否一致
         if (!newPassword.equals(newPasswordConfirm)) {
-            throw new IllegalArgumentException("新密碼兩次輸入不同，請重新輸入");
+            errorMessage += errorMessage==""? "新密碼兩次輸入不同，請重新輸入":",新密碼兩次輸入不同，請重新輸入";
         }
+        // 若出現錯誤，返回 400 錯誤和錯誤訊息
+        resp.put("success", errorMessage==""? true:false);
+        resp.put("errorMsg", errorMessage);
+        return resp;
+    }
 
+    public ResponseEntity<?> updatePassword(String oldPassword, String newPassword, String newPasswordConfirm, String email) {
+        Map<String, Object> resp = new HashMap<>();
+        // 1. 檢查舊密碼是否正確
+        Map<String, Object> verifyResult = checkPassword(oldPassword,newPassword,newPasswordConfirm,email);
+        String errorMessage = "";
+        if( !(Boolean) verifyResult.get("success")){
+            return ResponseEntity.ok(resp);
+        }
         // 3. 更新資料庫中的密碼
         String updatePasswordSQL = "UPDATE Members SET password = ? WHERE email = ?";
         int rowsAffected = jdbcTemplate.update(updatePasswordSQL, newPassword, email);
@@ -140,10 +155,13 @@ public class MemberService {
             Member updatedMember = new Member();
             updatedMember.setEmail(email);
             updatedMember.setPassword(newPassword);
-            return updatedMember;
         } else {
-            throw new IllegalStateException("更新失敗");
+            errorMessage="更新失敗";
         }
+        // 若出現錯誤，返回 400 錯誤和錯誤訊息
+        resp.put("success", errorMessage==""? true:false);
+        resp.put("errorMsg", errorMessage);
+        return ResponseEntity.ok(resp);
     }
 
     public List<Member> getAllMembers() {
@@ -224,9 +242,38 @@ public class MemberService {
     public void updateMemberDataByAdmin(int memberId, String  name, String email, String newPassword, MultipartFile pictureFile) {
         // 更新基本資料
 
-        // 更新圖片
-        saveAndUpdateMemberPicture(memberId,Base64Utils.convertToBase64(pictureFile));
+        // 1. 更新會員基本資料 準備更新 SQL，只更新有變更的欄位
+        List<Object> updateParams = new ArrayList<>();
+        StringBuilder updateSql = new StringBuilder("UPDATE Members SET ");
 
+        if (name != null && !name.trim().isEmpty() ) {
+            updateSql.append("name = ?, ");
+            updateParams.add(name);
+        }
+
+        if (email != null && !email.trim().isEmpty()) {
+            updateSql.append("email = ?, ");
+            updateParams.add(email);
+        }
+
+        if (!updateParams.isEmpty()) { // 只有 name 或 email 有變更才執行
+            updateSql.delete(updateSql.length() - 2, updateSql.length()); // 移除最後的 ", "
+            updateSql.append(" WHERE member_id = ?");
+            updateParams.add(memberId);
+
+            jdbcTemplate.update(updateSql.toString(), updateParams.toArray());
+        }
+
+        // 2. 更新密碼（如果有輸入新密碼）
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            String updatePwdSql = "UPDATE Members SET password = ? WHERE member_id = ?";
+            jdbcTemplate.update(updatePwdSql, newPassword, memberId);
+        }
+
+        // 3. 更新圖片（如果有上傳新圖片）
+        if (pictureFile != null && !pictureFile.isEmpty()) {
+            saveAndUpdateMemberPicture(memberId, Base64Utils.convertToBase64(pictureFile));
+        }
     }
     private Map<String, Object> createInterestItem(String key, boolean isChecked) {
         Map<String, Object> interestItem = new HashMap<>();
@@ -280,7 +327,7 @@ public class MemberService {
     }
 
     public boolean saveAndUpdateMemberPicture(int memberId, String base64Image) {
-
+        System.out.println("base64Image:" + base64Image);
         // 先檢查是否已經存在圖片資料
         String checkSql = "SELECT COUNT(*) FROM member_picture WHERE member_id = ?";
         int count = jdbcTemplate.queryForObject(checkSql, Integer.class, memberId);
@@ -363,7 +410,7 @@ public class MemberService {
             // 取得 token
             String token = jdbcTemplate.queryForObject("SELECT token FROM online_tokens WHERE member_id = ?",
                     new Object[]{memberId}, String.class);
-
+            System.out.println("token:"+ token);
             if (token != null) {
                 // 加入黑名單
                 String insertSql = "INSERT INTO blacklisted_tokens (token, expiry_time) VALUES (?, NOW())";
@@ -375,8 +422,51 @@ public class MemberService {
             }
             return true;
         } catch (Exception e) {
+            System.out.println("MemberService.java forceLogout-425:"+e.getMessage());
             return false;
         }
+    }
+
+    public Map<String, Object> memberDataVerify(String email, String password, String name,boolean needVerifyPwd,boolean needVerifyEmail) {
+        Map<String, Object> resp = new HashMap<>();
+        String errorMessage = "";
+        if(needVerifyEmail){
+            // 空白欄位檢查
+            if (email == null || email.trim().isEmpty()) {
+                errorMessage = "Email 不可為空白";
+            }
+            // 檢查信箱是否已註冊
+            if (errorMessage.isEmpty() && checkEmailRegister(email)) {
+                // 如果信箱 跟原來一樣?
+
+                errorMessage = "Email 已經被註冊";
+            }
+
+            // 信箱格式檢查
+            if (!errorMessage.isEmpty() || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+                errorMessage += errorMessage.isEmpty() ? "請輸入有效的 Email 地址" : ", 請輸入有效的 Email 地址";
+            }
+        }
+
+
+        if(needVerifyPwd){
+            if (password == null || password.trim().isEmpty()) {
+                errorMessage += errorMessage.isEmpty() ? "密碼不可為空白" : ", 密碼不可為空白";
+            }
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            errorMessage += errorMessage.isEmpty() ? "會員稱呼不可為空白" : ", 會員稱呼不可為空白";
+        }
+
+
+
+
+        // 回傳結果
+        resp.put("success", errorMessage.isEmpty());
+        resp.put("errorMsg", errorMessage);
+
+        return resp;
     }
 
     private void recordOpLog(Map<String, Object> extMember, String email, String name) {
