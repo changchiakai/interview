@@ -30,7 +30,6 @@ public class Mission7Controller {
             resp.put("success", false);
             resp.put("errorMsg", "登入資訊已過期，請重新登入");
             return ResponseEntity.ok().body(resp);
-//            return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
         }
 
         if (picture.isEmpty()) {
@@ -41,16 +40,16 @@ public class Mission7Controller {
 
         String memberId = JwtTokenUtils.getMemberIdFromToken(token);
 
-        // 將檔案轉換成 Base64 字串
         String base64Image = Base64Utils.convertToBase64(picture);
 
-        boolean status = memberService.saveAndUpdateMemberPicture(Integer.parseInt(memberId),base64Image);
+        boolean status = memberService.saveAndUpdateMemberPicture(Integer.parseInt(memberId), base64Image);
 
         resp.put("success", status);
         resp.put("errorMsg", "");
         return ResponseEntity.ok(resp);
 
     }
+
     @GetMapping("getPicture")
     public ResponseEntity<Map<String, Object>> getPicture(
             @RequestHeader("Authorization") String token
@@ -65,10 +64,10 @@ public class Mission7Controller {
 
         String memberId = JwtTokenUtils.getMemberIdFromToken(token);
 
-        Map<String, Object> memberPicture =  memberService.getMemberPicture(Integer.parseInt(memberId));
+        Map<String, Object> memberPicture = memberService.getMemberPicture(Integer.parseInt(memberId));
 
         resp.put("success", true);
-        resp.put("imageUrl", memberPicture == null ? "" : "data:image/jpeg;base64,"+memberPicture.get("picturebase64").toString());
+        resp.put("imageUrl", memberPicture == null ? "" : "data:image/jpeg;base64," + memberPicture.get("picturebase64").toString());
         resp.put("errorMsg", "");
         return ResponseEntity.ok(resp);
     }

@@ -5,15 +5,12 @@ public class Member {
     private String email;
     private String password;
     private String name;
-
-    // Constructors, Getters, and Setters
     public Member(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
     }
 
-    // Constructors, Getters, and Setters
     public Member(int member_id, String email, String password, String name) {
         this.member_id = member_id;
         this.email = email;

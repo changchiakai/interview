@@ -2,7 +2,6 @@ package com.careline.interview.test.service;
 
 import com.careline.interview.test.component.Base64Utils;
 import com.careline.interview.test.component.JwtTokenUtils;
-import com.careline.interview.test.dto.ErrorResponse;
 import com.careline.interview.test.dto.LoginRequest;
 import com.careline.interview.test.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -448,7 +446,6 @@ public class MemberService {
             }
         }
 
-
         if(needVerifyPwd){
             if (password == null || password.trim().isEmpty()) {
                 errorMessage += errorMessage.isEmpty() ? "密碼不可為空白" : ", 密碼不可為空白";
@@ -458,9 +455,6 @@ public class MemberService {
         if (name == null || name.trim().isEmpty()) {
             errorMessage += errorMessage.isEmpty() ? "會員稱呼不可為空白" : ", 會員稱呼不可為空白";
         }
-
-
-
 
         // 回傳結果
         resp.put("success", errorMessage.isEmpty());

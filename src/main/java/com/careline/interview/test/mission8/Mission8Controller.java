@@ -49,10 +49,6 @@ public class Mission8Controller {
     public ResponseEntity<Map<String, Object>> saveInterest(
             @RequestHeader("Authorization") String token,
             @RequestBody List<Map<String, Object>> interests) {
-        System.out.println("Mission8Controller.java saveInterest-53" + interests.toString());
-
-        System.out.println("Mission8Controller.java saveInterest-53"+   interests);
-
         Map<String, Object> resp = new HashMap<>();
         if (!memberService.tokenVerify(token)) {
             resp.put("success", false);

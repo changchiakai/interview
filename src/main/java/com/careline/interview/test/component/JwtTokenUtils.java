@@ -1,15 +1,13 @@
 package com.careline.interview.test.component;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Component;
-import java.awt.*;
+
 import javax.security.auth.message.AuthException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -18,7 +16,6 @@ public class JwtTokenUtils implements Serializable {
     private static final long EXPIRATION_TIME = 86400 * 1000 * 7; // 期限七天
 
     private static final String SECRET = "interview";
-
 
     public static String generateToken(int member_id,String name,String email) {
         Map<String, Object> claims = new HashMap<>();

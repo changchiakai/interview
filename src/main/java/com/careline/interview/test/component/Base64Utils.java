@@ -3,7 +3,6 @@ package com.careline.interview.test.component;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.Base64;
 
 @Component

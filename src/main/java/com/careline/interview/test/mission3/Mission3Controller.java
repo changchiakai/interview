@@ -1,6 +1,5 @@
 package com.careline.interview.test.mission3;
 
-import com.careline.interview.test.dto.ErrorResponse;
 import com.careline.interview.test.dto.RegisterResponse;
 import com.careline.interview.test.entity.Member;
 import com.careline.interview.test.service.MemberService;

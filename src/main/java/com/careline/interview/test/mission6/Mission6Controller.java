@@ -27,7 +27,6 @@ public class Mission6Controller {
             resp.put("success", false);
             resp.put("errorMsg", "登入資訊已過期，請重新登入");
             return ResponseEntity.ok().body(resp);
-//            return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
         }
 
         // 確認信箱是否已有人使用
@@ -40,7 +39,6 @@ public class Mission6Controller {
             resp.put("success", false);
             resp.put("errorMsg", "填寫信箱無法使用，請調整");
             return ResponseEntity.ok().body(resp);
-//            return new ResponseEntity<>(resp, HttpStatus.FORBIDDEN);
         }
 
         // 信箱格式檢查
@@ -72,9 +70,6 @@ public class Mission6Controller {
             @RequestParam String newPassword,
             @RequestParam String newPasswordConfirm
     ) {
-        System.out.println("oldPassword:" + oldPassword);
-        System.out.println("newPassword:" + newPassword);
-        System.out.println("newPasswordConfirm:" + newPasswordConfirm);
         ResponseEntity<?> result = memberService.updatePassword(oldPassword, newPassword, newPasswordConfirm, JwtTokenUtils.getEmailFromToken(token));
         return result;
     }

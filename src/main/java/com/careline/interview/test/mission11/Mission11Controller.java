@@ -1,7 +1,6 @@
 package com.careline.interview.test.mission11;
 
 import com.careline.interview.test.component.Base64Utils;
-import com.careline.interview.test.dto.ErrorResponse;
 import com.careline.interview.test.dto.RegisterResponse;
 import com.careline.interview.test.entity.Member;
 import com.careline.interview.test.service.MemberService;
@@ -80,7 +79,6 @@ public class Mission11Controller {
         if (!(Boolean) verifyData.get("success")) {
             return ResponseEntity.ok(verifyData);
         }
-
 
         memberService.updateMemberDataByAdmin(Integer.parseInt(memberId), name, email, newPassword, pictureFile);
 
